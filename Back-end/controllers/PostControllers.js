@@ -1,56 +1,68 @@
 import {Post, createPostValidate} from "../models/Post.js"
 import mongoose from "mongoose"
-
+import path from "path"
 
 
 
 //create post 
 export const createPost = async(req, res) => {
     const pathImage = path.join(process.cwd(), `../images${req.file.filename}`)
+    const userId = req.params.userId
+    const {title, description } = req.body
 
-    if(!req.file) {
-        return res.status(400).json({message: "image is requier"})
-    }
-    const {error} = createPostValidate(req.body)
-    if(error) {
-        return res.status(400).json({message: error.details[0].message})
-    }    
-    const newPost = new Post(req.body)
+    const newPost = new Post({
+        title: title,
+        description: description,
+        image: pathImage,
+        userId: userId 
+    })
 
-    try{
+    try {
         await newPost.save()
-        res.status(200).json({message: "post created"})
-    } catch(e) {
-        res.status(500).json(e)
+        res.status(200).json(newPost)
+    }catch(e) {
+        res.status(500).json({message: err.message})
     }
 }
 
-export const getPosts= async (req, res) => {
-    const posts = Post.find()
-    try{ 
+
+//get posts 
+export const getPosts = async (req,res) => {
+    const posts = await Post.find()
+    try {
         res.status(200).json(posts)
-    }catch(e) {
-        console.log(e)
+    } catch (e) {
         res.status(500).json(e)
-    } 
+    }
 }
 
 //get post 
-export const getPost= async (req, res) => {
-    const id = req.params.id
-
-    try{ 
-        const post = await Post.findById(id)
+export const getPost = async (req, res) => {
+    const postId = req.params.postId
+    try{
+        const post = await Post.findById(postId)
         res.status(200).json(post)
-    }catch(e) {
+
+    } catch (e) {
+        res.status(500).json(e)
+    }
+}
+
+// get my post 
+export const getMyPost = async(req, res) => {
+    const userId = req.params.userId
+    try{ 
+        const post = await Post.find({userId: userId})
+        res.status(200).json(post)
+    } catch(e) {
         res.status(500).json(e)
     }
 }
 
 //update post 
 export const updatePost= async (req, res) => {
-    const postId = req.params.id
-    const userId = req.body
+    const postId = req.params.postId
+    const userId = req.params.userId
 
     try{
         const post = await Post.findById(postId)
@@ -63,3 +75,18 @@ export const updatePost= async (req, res) => {
     }
 
 }
+
+
+//delete post 
+export const deletePost = async (req, res) => {
+    const postId = req.params.postId
+    const post = await Post.findById(postId)
+
+    await Post.findByIdAndDelete(post)
+    try{
+        console.log(post)
+        res.status(200).json({message: "post deleted"})
+    } catch (e) {
+        res.status(500).json(e)
+    }
+} 
