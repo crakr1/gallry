@@ -26,12 +26,15 @@ export const register = async(req, res) => {
     const newUser = new User({
         name, 
         email,
-        password:hashed
+        password:hashed,
     })
 
     try{
        await newUser.save() 
-       res.status(200).json(newUser)
+       const user = await User.findOne({email: req.body.email})
+
+       const token = user.AuthToken()
+       res.status(200).json(token)
     }catch(err) {
         res.status(500).json({message: err.message})
     }

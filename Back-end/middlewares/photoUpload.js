@@ -5,7 +5,7 @@ const DIR = '../../images'
 const storage = multer.diskStorage({
     destination: "./images",
     filename: (req, file, cb) => {
-      cb(null, `${"avatar"}-${Date.now()}--${file.originalname}`);
+      cb(null, `-${Date.now()}--${file.originalname}`);
     },
   });
 

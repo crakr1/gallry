@@ -1,7 +1,7 @@
 import {Post, createPostValidate} from "../models/Post.js"
+import User from "../models/User.js"
 import mongoose from "mongoose"
 import path from "path"
-
 
 
 //create post 
@@ -90,3 +90,26 @@ export const deletePost = async (req, res) => {
         res.status(500).json(e)
     }
 } 
+
+
+//like post
+export const like = async (req, res) => {
+    const userId = req.params.userId
+    const postId = req.params.postId
+
+    let post = await Post.findById(postId)
+    const isPostLiked = post.likes.find((user) => user.toString() === userId)
+    if(isPostLiked){
+        post = await Post.findByIdAndUpdate(postId, {
+            $pull: {likes: userId}
+        }, {new  : true})
+    } else {
+        post = await Post.findByIdAndUpdate(postId, {
+            $push: {likes: userId}
+        }, {new : true})
+    }
+    console.log(post)
+    res.status(200).json(post)
+   
+
+}
