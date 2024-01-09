@@ -1,35 +1,74 @@
 import "bootstrap/dist/css/bootstrap.min.css"
 import { Card, Container, Navbar, Nav,Button} from 'react-bootstrap';
 import '../theme/login.css'
-import {useFormik} from 'formik'
-import { signValidation } from "../middlewares/signValidation";
 import axios from '../config/axios'
 import { LOGIN_URL } from "../config/url";
+import { useState } from "react";
+import Loader from "../components/loader";
+import { useHistory } from "react-router-dom";
+import { Preferences } from '@capacitor/preferences';
 
-const onSubmit = async (values) => {
-    try{
-        await axios.post(LOGIN_URL, values).then(res => {
-            console.log(res)
-        })
-    } catch (e) {
-        console.log(e.message)
-    }
+
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css'
+
+const notify = () => {
+    toast.error("البريد الاكتروني او كلمة المرور غير صحيح ", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+    }) 
 }
-const initialValues = {
-    email: '',
-    password: '',
-}
+
+
 function Login() {
-    const {values, handleBlur, handleChange, handleSubmit, errors} = useFormik({
-        initialValues: initialValues,
-        validationSchema: signValidation,
-        onSubmit: (values) => {
-            onSubmit(values)
+
+    const [email, setEmail] = useState()
+    const [password, setPassword] = useState()
+    const [showLoading, setShowLoading] = useState(false)
+
+    const history = useHistory()
+
+
+    const onSubmit = async () => {
+        setShowLoading(true)
+        const loginForm = {
+            email,
+            password
         }
-    })
+        try{
+            await axios.post(LOGIN_URL, loginForm ).then(res => {
+                localStorage.setItem("token", res.data)
+
+                Preferences.set({
+                    key: "token",
+                    value: res.data.token
+                })
+                console.log(res.data.token)
+                console.log(res.data)
+
+                history.push('/')
+                setShowLoading(false)
+            })
+        } catch (e) {
+            if(e.response.status === 400){
+                notify()
+            }
+            console.log(e.message)
+            setShowLoading(false)
+        }
+    }
+
     return (
     <>
-        <Navbar bg="dark" data-bs-theme="dark">
+     {showLoading? <Loader isOpen={showLoading}/> : 
+     <>
+         <Navbar bg="dark" data-bs-theme="dark">
             <Container> 
                 <Navbar.Brand href="/">gallery</Navbar.Brand>
                 <Nav className="">
@@ -38,36 +77,38 @@ function Login() {
                     </Nav.Link>
                 </Nav>
             </Container>
-        </Navbar>           <Container className="card-theme" >
+        </Navbar>           
+        <Container className="card-theme" >
+        <ToastContainer />
             <Card className="mt-5 card-" >
                 <Card.Body>
                     <Card.Title> تسجيل دخول</Card.Title>
-                    <form onSubmit={handleSubmit}>
+                    <form >
                         <div className="form-floating mb-3">
-                            <input type="email" name="email" 
+                            <input type="email" 
                             className="form-control" id="floatingInput" 
-                            placeholder="name@example.com" value={values.email}
-                            onBlur={handleBlur} onChange={handleChange}
+                            placeholder="name@example.com" 
+                            value={email} onChange={(e) => {setEmail(e.target.value)}}
                             />
                             <label htmlFor="email">البريد الاكتروني</label>
-                            {errors.email && <small>{errors.email}</small>}
                         </div>
                         <div className="form-floating mb-3">
-                            <input type="password" name="password"
+                            <input type="password"
                             className="form-control " 
-                            placeholder="Password" value={values.password}
-                            onBlur={handleBlur} onChange={handleChange}
+                            placeholder="Password" 
+                            value={password} onChange={(e) => {setPassword(e.target.value)}}
                             />
                             <label htmlFor="password">الرمز</label>
-                            {errors.password && <small>{errors.password}</small>}                
                         </div>
-                        <button type="submit" className="btn btn-primary">تسجيل الدخول</button>
+                        <button onClick={() => {onSubmit()}} className="btn btn-primary" onSubmit={onSubmit}>تسجيل الدخول</button>
                     </form>   
                     <div className="mt-3"> ليس لديك حساب؟<a className="link" href="/register"> انشاء حساب</a></div> 
                 </Card.Body>
             </Card>
 
         </Container>    
+     </>
+}
     </>
 
     )

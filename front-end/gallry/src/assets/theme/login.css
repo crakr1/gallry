@@ -33,3 +33,7 @@ body {
 small {
   color: rgb(255, 51, 51);
 }
+
+.alert {
+  margin-top: 30px;
+}

@@ -8,5 +8,5 @@ export const signValidation = Yup.object({
     .required("الرجاء ادخال البريد الاكتروني"),
     password: Yup.string().min(6, "الرجاء ادخال اكثر من 6 خانات")
     .required('الرجاء ادخال الرمز'),
-    confirmPassword: Yup.string().oneOf([Yup.ref('password')], 'كلمة المرور غير مطابقة')
+    confirmPassword: Yup.string().required('الرجاء اعادة كتابة الرمز').oneOf([Yup.ref('password')], 'كلمة المرور غير مطابقة')
 })

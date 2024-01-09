@@ -5,35 +5,79 @@ import {useFormik} from 'formik'
 import { signValidation } from "../middlewares/signValidation";
 import axios from '../config/axios';
 import { REGISTER_URL } from "../config/url";
+import { useHistory } from "react-router-dom";
+import { useState } from "react";
+import Loader from '../components/loader'
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css'
+import { Preferences } from '@capacitor/preferences';
 
-const onSubmit = async (values) => {
-    try{
-        await axios.post(REGISTER_URL, values).then(res => {
-            console.log(res)
-        })
-    } catch (e) {
-        console.log(e.message)
-    }
+
+const notify = () => {
+    toast.error("البريد الاكتروني مستخدم بالفعل", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+    }) 
 }
-const initialValues = {
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-}
+
 function Register() {
+
+    const [showLoading, setShowLoading] = useState(false)
+
+    const history = useHistory()
+
+    const onSubmit = async ({ name, password, email }) => {
+        setShowLoading(true)
+        const valid_values = { email, password, name }
+    
+        try {
+            await axios.post(REGISTER_URL, valid_values).then(res => {
+                localStorage.JSON.stringify().setItem("token", res.data)
+                
+                Preferences.set({
+                    key: "token",
+                    value: res.data
+                })
+                console.log(res.data)
+                history.push('/')
+                setShowLoading(false)
+            })
+        }
+        catch(e){
+            if(e.response.status === 400){
+                notify()
+            }
+            console.log(e.message)
+            setShowLoading(false)
+        }
+    }
+    const initialValues = {
+        name: '',
+        email: '',
+        password: '',
+    }
+
     const {values, handleBlur, handleChange, handleSubmit, errors} = useFormik({
         initialValues: initialValues,
         validationSchema: signValidation,
         onSubmit: (values) => {
             onSubmit(values)
+            
         }
     })
 
     
     return (
     <>
-        <Navbar bg="dark" data-bs-theme="dark">
+    {showLoading? <Loader isOpen={showLoading}/> : 
+     <>
+         <Navbar bg="dark" data-bs-theme="dark">
             <Container> 
                 <Navbar.Brand href="/">gallery</Navbar.Brand>
                 <Nav className="">
@@ -42,7 +86,9 @@ function Register() {
                     </Nav.Link>
                 </Nav>
             </Container>
-        </Navbar>           <Container className="card-theme" >
+        </Navbar>           
+        <ToastContainer />
+        <Container className="card-theme" >
             <Card className="mt-5 card-" >
                 <Card.Body>
                     <Card.Title>انشاء حساب</Card.Title>
@@ -77,20 +123,21 @@ function Register() {
                         <div className="form-floating">
                             <input type="password" name="confirmPassword"
                             className="form-control mb-3" id="floatingPassword" 
-                            placeholder="confirmPassword" value={values.confirmPassword}
+                            placeholder="confirmPassword" 
                             onBlur={handleBlur} onChange={handleChange}
                             />
                             <label htmlFor="confirmPassword">تاكيد الرمز</label>
                             {errors.confirmPassword && <small style={{color: 'danger'}}>{errors.confirmPassword}</small>}
                         </div>
-                        <button type="submit" className="btn btn-primary">انشاء الحساب </button>
+                        <button type="submit" className="btn btn-primary" >انشاء الحساب </button>
                     </form>    
                     <div className="mt-3"> لديك حساب بالفعل؟ <a className="link" href="/login">سجل دخولك</a></div>
 
                 </Card.Body>
             </Card>
-
-        </Container>    
+        </Container> 
+     </>
+    }   
     </>
 
     )

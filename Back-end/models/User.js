@@ -19,7 +19,7 @@ const UserSchema = new Schema({
         type: String, 
         required: true,
         minLength: 6
-    }
+    },
 }, {
     timestamps: true
 })
