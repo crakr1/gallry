@@ -38,7 +38,7 @@ function Register() {
     
         try {
             await axios.post(REGISTER_URL, valid_values).then(res => {
-                localStorage.JSON.stringify().setItem("token", res.data)
+                localStorage.setItem("token", res.data)
                 
                 Preferences.set({
                     key: "token",
