@@ -34,6 +34,11 @@ function Login() {
 
     const history = useHistory()
 
+    function reFresh() {
+        window.location.reload(false)
+    }
+
+
 
     const onSubmit = async () => {
         setShowLoading(true)
@@ -43,16 +48,12 @@ function Login() {
         }
         try{
             await axios.post(LOGIN_URL, loginForm ).then(res => {
-                localStorage.setItem("token", res.data)
-
                 Preferences.set({
                     key: "token",
                     value: res.data.token
                 })
-                console.log(res.data.token)
-                console.log(res.data)
-
                 history.push('/')
+                reFresh()
                 setShowLoading(false)
             })
         } catch (e) {

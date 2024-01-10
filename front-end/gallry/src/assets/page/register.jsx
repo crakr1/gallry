@@ -12,7 +12,6 @@ import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css'
 import { Preferences } from '@capacitor/preferences';
 
-
 const notify = () => {
     toast.error("البريد الاكتروني مستخدم بالفعل", {
         position: "top-right",
@@ -32,20 +31,23 @@ function Register() {
 
     const history = useHistory()
 
+    
+    function reFresh() {
+        window.location.reload(false)
+    }
+
     const onSubmit = async ({ name, password, email }) => {
         setShowLoading(true)
         const valid_values = { email, password, name }
     
         try {
             await axios.post(REGISTER_URL, valid_values).then(res => {
-                localStorage.setItem("token", res.data)
-                
                 Preferences.set({
                     key: "token",
                     value: res.data
                 })
-                console.log(res.data)
                 history.push('/')
+                reFresh()
                 setShowLoading(false)
             })
         }

@@ -6,14 +6,14 @@ import path from "path"
 
 //create post 
 export const createPost = async(req, res) => {
-    const pathImage = path.join(process.cwd(), `../images${req.file.filename}`)
+
     const userId = req.params.userId
     const {title, description } = req.body
 
     const newPost = new Post({
         title: title,
         description: description,
-        image: pathImage,
+        image: req.file.path,
         userId: userId 
     })
 
